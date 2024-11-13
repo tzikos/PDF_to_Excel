@@ -93,9 +93,16 @@ if st.button("Enter") and uploaded_files and fields_input:
     df = pd.DataFrame(extracted_data)
     df = df[['file_name'] + requested_fields]
     if 'energy_score' in df.columns and 'potential_energy_score' in df.columns:
-        temp_df = df.loc[df['energy_score']>df['potential_energy_score'],:]
-        temp_df['energy_score'] = temp_df['potential_energy_score']
-        df.update(temp_df)
+        mask = df['energy_score'] > df['potential_energy_score']
+        
+        # Store the original energy_score values temporarily
+        temp_energy_scores = df.loc[mask, 'energy_score']
+        
+        # Update energy_score to match potential_energy_score where the condition is met
+        df.loc[mask, 'energy_score'] = df.loc[mask, 'potential_energy_score']
+        
+        # Update potential_energy_score to the original energy_score values stored in temp_energy_scores
+        df.loc[mask, 'potential_energy_score'] = temp_energy_scores
 
     # Calculate success percentage if energy_rating is requested
     # if 'energy_rating' in df.columns:
