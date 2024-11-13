@@ -48,8 +48,6 @@ if st.button("Enter") and uploaded_files and fields_input:
         txt = ''.join([page.extract_text() for page in reader.pages])
         epc_texts[file_name] = txt
         
-        
-
     # Set up OpenAI API client
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
@@ -84,17 +82,29 @@ if st.button("Enter") and uploaded_files and fields_input:
             data['file_name'] = file_name
             extracted_data.append(data)
         except json.JSONDecodeError:
-            st.error(f"Error parsing response for file {file_name}")
+            try:
+                data = json.loads(response.choices[0].message.content)
+                data['file_name'] = file_name
+                extracted_data.append(data)
+            except json.JSONDecodeError:
+                st.error(f"Error parsing response for file {file_name}")
 
     # Convert extracted data into a DataFrame
     df = pd.DataFrame(extracted_data)
     df = df[['file_name'] + requested_fields]
+    if 'energy_score' in df.columns and 'potential_energy_score' in df.columns:
+        temp_df = df.loc[df['energy_score']>df['potential_energy_score'],:]
+        temp_df['energy_score'] = temp_df['potential_energy_score']
+        df.update(temp_df)
+
     # Calculate success percentage if energy_rating is requested
-    if 'energy_rating' in df.columns:
-        success_percentage = (1 - df['energy_rating'].isna().mean()) * 100
-    else:
-        success_percentage = 0
-    st.write(f"Success Percentage: {success_percentage:.2f}%")
+    # if 'energy_rating' in df.columns:
+    #     success_percentage = (1 - df.isna().mean().mean()) * 100
+    # else:
+    #     success_percentage = 0
+
+    st.write(f"Extracted data from {len(df)/len(epc_texts.items())*100:.2f}% of the documents.")
+    
 
     # Prepare for Excel download
     today_date = datetime.today().strftime('%d_%m_%y')
@@ -109,4 +119,3 @@ if st.button("Enter") and uploaded_files and fields_input:
             file_name=excel_file,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
