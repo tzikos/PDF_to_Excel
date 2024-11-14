@@ -45,7 +45,7 @@ if st.button("Enter") and uploaded_files and fields_input:
     for i, uploaded_file in enumerate(uploaded_files):
         file_name = uploaded_file.name
         reader = PdfReader(uploaded_file)
-        txt = ''.join([page.extract_text() for page in reader.pages[0]])
+        txt = ''.join([page.extract_text() for page in reader.pages[:1]])
         epc_texts[file_name] = txt
         
     # Set up OpenAI API client
