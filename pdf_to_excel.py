@@ -58,11 +58,17 @@ if st.button("Enter") and uploaded_files and fields_input:
         progress_bar.progress((i + 1) * step, text=f"Processing {file_name}: {(i + 1)/len(epc_texts)*100:.2f}%")
         # Construct prompt with dynamically selected fields
         prompt = f"""
-        You are a text processing agent working with lease agreement documents.
+        You are a text processing agent working with energy performance certificate documents.
+
+        You are given the following:
+        - Ratings with their score ranges: [A: 92+, B: 81-91, C: 69-80, D: 55-68, E: 39-54, F: 21-38, G: 1-20]
+        - In the source text you may find the current rating in the format e.g. "49 E" and the potential rating in the format e.g. "C 70".
 
         Extract only specified values from the source text.
         Return answer as JSON object with the following fields:
         {fields_str}
+
+        Keep in mind that if ratings and scores are requested above, you should only extract one letter for the energy_rating and potential_energy_rating fields and the energy_score and potential_energy_score fields should be an integer.
 
         Use only the source text provided below.
         ========
